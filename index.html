@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saiten-Berater: Finde deine perfekte Tennissaite</title>
+    <style>
+        :root {
+            --primary: #10b981; /* Tennis-Grün */
+            --primary-dark: #059669;
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --text: #1f2937;
+            --text-light: #4b5563;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            background: var(--card-bg);
+            max-width: 600px;
+            width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            padding: 40px;
+            transition: all 0.3s ease;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background-color: #e5e7eb;
+            border-radius: 3px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .question {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: none;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: left;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary);
+            background-color: #f0fdf4;
+        }
+
+        .result-card {
+            text-align: center;
+        }
+
+        .string-title {
+            font-size: 28px;
+            color: var(--primary-dark);
+            margin: 20px 0 10px 0;
+            font-weight: 800;
+        }
+
+        .string-type {
+            display: inline-block;
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .string-desc {
+            color: var(--text-light);
+            line-height: 1.6;
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+
+        .restart-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .restart-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <!-- Quiz Screen -->
+    <div id="quiz-screen">
+        <h1 id="quiz-title">Saiten-Berater</h1>
+        <div class="subtitle">Finde in wenigen Klicks dein perfektes Setup</div>
+        <div class="progress-bar">
+            <div id="progress" class="progress"></div>
+        </div>
+        <div id="question" class="question">Frage lädt...</div>
+        <div id="options" class="options-list"></div>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="result-screen" class="result-card hidden">
+        <h1>Deine perfekte Saite ist:</h1>
+        <div id="result-title" class="string-title">Saitenname</div>
+        <div id="result-type" class="string-type">Materialtyp</div>
+        <div id="result-desc" class="string-desc">Beschreibung</div>
+        <button class="restart-btn" onclick="restartQuiz()">Test wiederholen</button>
+    </div>
+</div>
+
+<script>
+    // Definition der Fragen und deren Punktegewichtung für die Saiten
+    const questions = [
+        {
+            question: "Was ist dir bei deinem Spiel am allerwichtigsten?",
+            options: [
+                { text: "Maximale Armschonung, weiches Gefühl & kräftige Bälle ohne Kraftaufwand", scores: { polytech: 1, msv: 3, babolat: 5 } },
+                { text: "Ein extrem elastischer Armschoner, der mir trotz komfortabler Fasern extra viel Spin gibt", scores: { polytech: 2, msv: 5, babolat: 1 } },
+                { text: "Die exzellente Ballkontrolle einer Polyester-Saite, die aber spürbar weicher und armfreundlicher federt als klassische Polys", scores: { polytech: 5, msv: 2, babolat: 1 } }
+            ]
+        },
+        {
+            question: "Hattest du in der Vergangenheit schon mal Probleme mit einem Tennisarm (Epicondylitis)?",
+            options: [
+                { text: "Ja, mein Arm ist sehr empfindlich. Ich brauche maximalen Dämpfungskomfort.", scores: { polytech: 2, msv: 4, babolat: 5 } },
+                { text: "Ab und zu zwickt es, weshalb ich eine elastische, dämpfende Faserstruktur bevorzuge, aber etwas Spin-Biss suche.", scores: { polytech: 2, msv: 5, babolat: 3 } },
+                { text: "Nein, überhaupt nicht. Ich will eine haltbare Polyester-Saite, die sich einfach nur geschmeidig anfühlt.", scores: { polytech: 5, msv: 1, babolat: 1 } }
+            ]
+        },
+        {
+            question: "Wie steht es um deinen Saitenverschleiß? Wie oft reißt dir eine Saite?",
+            options: [
+                { text: "Sehr selten bis nie. Ich mag es, wenn die Saite lange die Spannung hält.", scores: { polytech: 1, msv: 4, babolat: 5 } },
+                { text: "Gelegentlich. Ich spiele etwas Topspin, brauche aber ein stabileres Faser-Geflecht.", scores: { polytech: 3, msv: 5, babolat: 2 } },
+                { text: "Sehr häufig. Ich suche die langlebige Reißfestigkeit einer echten (aber weichen) Polyester-Saite.", scores: { polytech: 5, msv: 2, babolat: 1 } }
+            ]
+        },
+        {
+            question: "Welche Form soll das Profil deiner Saite idealerweise haben?",
+            options: [
+                { text: "Klassisch rund für sauberen, ehrlichen Ballabsprung (Nylon/Syn Gut)", scores: { polytech: 2, msv: 2, babolat: 5 } },
+                { text: "Ebenfalls rund, aber aus hochelastischem Co-Polyester für die perfekte Mischung aus Grip und Komfort", scores: { polytech: 5, msv: 1, babolat: 2 } },
+                { text: "Eine clevere Faser-Konstruktion (Multifilament) mit extra Beschichtung für maximalen Snapback-Drall", scores: { polytech: 1, msv: 5, babolat: 1 } }
+            ]
+        }
+    ];
+
+    // Daten der drei im Angebot stehenden Saiten
+    const strings = {
+        polytech: {
+            title: "Topspin Polytech Evo II (1,25)",
+            type: "Weiches Co-Polyester (Monofilament)",
+            desc: "Perfekt für dich! Du suchst die Haltbarkeit und die Präzision einer Polyester-Saite, legst aber Wert auf Armschonung. Mit einer extrem geringen statischen Steifigkeit von gerade einmal 0,73 kg/mm (Racketpedia-Wert) ist sie eine der weichsten Polys am Markt. Sie bietet dir grandiosen Energy Return bei knackiger Kontrolle."
+        },
+        msv: {
+            title: "MSV Spin Plus (1,30)",
+            type: "Komfort-Multifilament (Polyamid)",
+            desc: "Volltreffer! Du suchst elastischen Komfort für deinen Arm, willst aber auf keinen Fall auf starken Topspin verzichten. Die MSV Spin Plus ist eine echte Multifilament-Saite aus Polyamid, die dank ihrer speziellen Außenwicklungen und Gleitbeschichtung einen hervorragenden Snapback erzeugt. Maximaler Komfort gepaart mit genialem Faser-Spin!"
+        },
+        babolat: {
+            title: "Babolat Synthetic Gut",
+            type: "Klassisches Nylon (Synthetic Gut)",
+            desc: "Die perfekte Wahl für dein Spiel! Du suchst den absoluten Klassiker unter den Allround-Saiten. Sie bietet dir ein wunderbar lebendiges Spielgefühl, super Eigenbeschleunigung (Power) und hält die Spannung im Vergleich zu Polyester-Saiten extrem stabil. Perfekt für Spieler mit geraden Schlägen, die maximalen Komfort suchen."
+        }
+    };
+
+    let currentQuestionIndex = 0;
+    let userScores = { polytech: 0, msv: 0, babolat: 0 };
+
+    function loadQuestion() {
+        const progressPercent = (currentQuestionIndex / questions.length) * 100;
+        document.getElementById('progress').style.width = `${progressPercent}%`;
+
+        if (currentQuestionIndex >= questions.length) {
+            showResult();
+            return;
+        }
+
+        const currentQuestion = questions[currentQuestionIndex];
+        document.getElementById('question').textContent = currentQuestion.question;
+        
+        const optionsContainer = document.getElementById('options');
+        optionsContainer.innerHTML = '';
+
+        currentQuestion.options.forEach(option => {
+            const button = document.createElement('button');
+            button.className = 'option-btn';
+            button.textContent = option.text;
+            button.onclick = () => handleAnswer(option.scores);
+            optionsContainer.appendChild(button);
+        });
+    }
+
+    function handleAnswer(scores) {
+        for (const string in scores) {
+            userScores[string] += scores[string];
+        }
+        currentQuestionIndex++;
+        loadQuestion();
+    }
+
+    function showResult() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+
+        // Ermittle die Saite mit den meisten Punkten
+        let winner = 'polytech';
+        if (userScores.msv > userScores.polytech && userScores.msv > userScores.babolat) {
+            winner = 'msv';
+        } else if (userScores.babolat > userScores.polytech && userScores.babolat > userScores.msv) {
+            winner = 'babolat';
+        }
+
+        const result = strings[winner];
+        document.getElementById('result-title').textContent = result.title;
+        document.getElementById('result-type').textContent = result.type;
+        document.getElementById('result-desc').textContent = result.desc;
+    }
+
+    function restartQuiz() {
+        currentQuestionIndex = 0;
+        userScores = { polytech: 0, msv: 0, babolat: 0 };
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        loadQuestion();
+    }
+
+    // Initialer Start des Quizzes
+    loadQuestion();
+</script>
+
+</body>
+</html>
